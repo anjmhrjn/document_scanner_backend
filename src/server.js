@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const http = require("http");
-// const mongodb = require("./config/db");
+const mongodb = require("./config/db");
 const moment = require("moment-timezone");
 const createError = require("http-errors");
 
@@ -23,7 +23,7 @@ app.use(
 );
 
 // API routes
-// require('./routes/allRoutes')(app)
+require('./routes/allRoutes')(app)
 
 // not found
 app.use(async (req, res, next) => {
@@ -45,21 +45,17 @@ app.set("port", port);
 
 const server = http.createServer(app);
 
-server.listen(port);
-server.on("error", onError);
-server.on("listening", onListening);
-
-// mongodb()
-//   .then(() => {
-//     server.listen(port);
-//     server.on("error", onError);
-//     server.on("listening", onListening);
-//   })
-//   .catch((error) => {
-//     console.error("Unable to connect to database.");
-//     console.trace(error.message);
-//     process.exit(1);
-//   });
+mongodb()
+  .then(() => {
+    server.listen(port);
+    server.on("error", onError);
+    server.on("listening", onListening);
+  })
+  .catch((error) => {
+    console.error("Unable to connect to database.");
+    console.trace(error.message);
+    process.exit(1);
+  });
 
 function normalizePort(val) {
   const port = parseInt(val, 10);
