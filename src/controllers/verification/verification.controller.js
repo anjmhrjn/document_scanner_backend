@@ -3,11 +3,9 @@ const {
   hashPasswordWithSaltAndPepper,
   compareHashPasswordWithSaltAndPepper,
 } = require("../../utils/hash.util");
-const {
-  generateUniqueCode,
-} = require("../../utils/randString.util");
+const { generateUniqueCode } = require("../../utils/randString.util");
 const { signAccessToken } = require("../../utils/jwt.util");
-const Users = require("../../models/users/users");
+const { prisma } = require("../../config/db");
 
 exports.logoutUser = async function (req, res, next) {
   try {
@@ -20,8 +18,8 @@ exports.logoutUser = async function (req, res, next) {
 exports.loginUser = async function (req, res, next) {
   try {
     //check if username exists or not
-    const checkExists = await Users.findOne({
-      username: req.body.username,
+    const checkExists = await prisma.user.findUnique({
+      where: { username: req.body.username },
     });
 
     if (!checkExists)
@@ -58,8 +56,8 @@ exports.loginUser = async function (req, res, next) {
 
 exports.singUpUser = async function (req, res, next) {
   try {
-    const userexists = await Users.findOne({
-      username: req.body.username,
+    const userexists = await prisma.user.findUnique({
+      where: { username: req.body.username },
     });
     if (userexists) {
       return res.json({
@@ -69,13 +67,15 @@ exports.singUpUser = async function (req, res, next) {
     }
     let salt = generateUniqueCode(30);
     let passwordHash = hashPasswordWithSaltAndPepper(req.body.password, salt);
-    await Users.create({
-      username: req.body.username,
-      email: req.body.email,
-      firstname: req.body.firstname,
-      lastname: req.body.lastname,
-      hash: passwordHash,
-      salt: salt,
+    await prisma.user.create({
+      data: {
+        username: req.body.username,
+        email: req.body.email,
+        firstname: req.body.firstname,
+        lastname: req.body.lastname,
+        hash: passwordHash,
+        salt: salt,
+      },
     });
     return res.json({
       success: true,

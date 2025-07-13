@@ -469,3 +469,6 @@ FodyWeavers.xsd
 *.tlog
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio
+/src/generated/prisma
+# Prisma migration files (optional: track these if you want migrations in repo)
+prisma/migrations/

@@ -1,7 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const http = require("http");
-const mongodb = require("./config/db");
+const {connectToDB, prisma} = require("./config/db");
 const moment = require("moment-timezone");
 const createError = require("http-errors");
 
@@ -23,7 +23,7 @@ app.use(
 );
 
 // API routes
-require('./routes/allRoutes')(app)
+require("./routes/allRoutes")(app);
 
 // not found
 app.use(async (req, res, next) => {
@@ -45,15 +45,28 @@ app.set("port", port);
 
 const server = http.createServer(app);
 
-mongodb()
+connectToDB()
   .then(() => {
     server.listen(port);
     server.on("error", onError);
     server.on("listening", onListening);
+
+    process.on('SIGINT', async () => {
+      console.log('\nSIGINT received. Disconnecting from DB...');
+      await prisma.$disconnect();
+      console.log('Disconnected from DB. Shutting down.');
+      process.exit(0);
+    });
+
+    process.on('SIGTERM', async () => {
+      console.log('\nSIGTERM received. Disconnecting from DB...');
+      await prisma.$disconnect();
+      console.log('Disconnected from DB. Shutting down.');
+      process.exit(0);
+    });
   })
-  .catch((error) => {
-    console.error("Unable to connect to database.");
-    console.trace(error.message);
+  .catch((err) => {
+    console.error("Failed to start server due to DB error");
     process.exit(1);
   });
 
